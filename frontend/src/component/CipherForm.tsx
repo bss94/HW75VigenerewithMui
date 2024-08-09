@@ -3,20 +3,20 @@ import { IFormState } from '../types.ts';
 import { Box, Button, FormControl, Grid, IconButton, InputLabel, OutlinedInput, TextField } from '@mui/material';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
+import axiosApi from '../axiosApi.ts';
 
-interface Props {
-  onDecode: (message: string, password: string) => string;
-  onEncode: (message: string, password: string) => string;
+const initialState: IFormState = {
+  encode: '',
+  password: '',
+  decode: '',
 }
 
-const CipherForm: React.FC<Props> = ({
-  onDecode, onEncode
-}) => {
+const CipherForm: React.FC = () => {
+
   const [formState, setFormState] = useState<IFormState>({
-    encode: '',
-    password: '',
-    decode: '',
+   ...initialState
   });
+
   const onHandleChange = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     setFormState(prevState => {
       return {
@@ -25,6 +25,37 @@ const CipherForm: React.FC<Props> = ({
       };
     });
   };
+
+  const onDecode = async () => {
+    if (formState.decode.length > 0 && formState.password.length > 0) {
+      const decodeMessage = {message: formState.decode, password: formState.password};
+      const {data: decoded} = await axiosApi.post('/decode', decodeMessage);
+      if (decoded) {
+        setFormState(prevState => ({
+          ...prevState,
+          encode: decoded.decoded
+        }));
+      }
+    }else{
+      alert('decode or password is empty')
+    }
+  };
+
+  const onEncode = async () => {
+    if (formState.encode.length > 0 && formState.password.length > 0) {
+      const encodeMessage = {message: formState.encode, password: formState.password};
+      const {data: encoded} = await axiosApi.post('/encode', encodeMessage);
+      if (encoded) {
+        setFormState(prevState => ({
+          ...prevState,
+          decode: encoded.encoded
+        }));
+      }
+    }else{
+      alert('encode or password is empty')
+    }
+  };
+
   return (
     <Box
       component="form"
